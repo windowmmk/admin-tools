@@ -37,7 +37,7 @@
 ## 🚀 在線體驗
 
 - **Cloudflare Workers 線上版**：[https://works.workertool.workers.dev/](https://works.workertool.workers.dev/)
-- **GitHub Pages 線上版**：可在本倉庫啟用 GitHub Pages 後直接造訪。
+- **GitHub Pages 線上版**：[https://windowmmk.github.io/admin-tools/](https://windowmmk.github.io/admin-tools/)
 
 ---
 
