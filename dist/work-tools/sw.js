@@ -1,6 +1,7 @@
 /* 工作小工具 PWA service worker —— 版本號由 build_combo.py 寫入（CACHE） */
 var CACHE = 'work-tools-v2.13';
 var CORE = [
+  './',
   'index.html',
   'manifest.webmanifest',
   'icon-192.png',

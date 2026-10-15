@@ -359,15 +359,40 @@ var lastPopDate='';
 function showHolModal(miss){
   document.getElementById('holModalBody').innerHTML='<b>'+miss.join('、')+'</b> 年的公眾假期政府尚未發佈（假期資料目前只到 '+holMaxYear()+' 年）。<br><br>這個15天期限僅根據已知假期計算，僅供參考；實際期限可能因日後公佈的假期再順延。';
   document.getElementById('holModal').hidden=false;
+  try{
+    if(typeof window !== 'undefined' && window.history && window.history.pushState){
+      window.history.pushState({ modal: 'holModal' }, '');
+    }
+  }catch(e){}
+}
+function hideHolModal(){
+  var m = document.getElementById('holModal');
+  if(m){
+    m.hidden = true;
+    try{
+      if(typeof window !== 'undefined' && window.history && window.history.state && window.history.state.modal === 'holModal'){
+        window.history.back();
+      }
+    }catch(e){}
+  }
 }
 document.getElementById('recv').addEventListener('change', function(){
   var v=this.value, miss=coverageMiss(v);
   if(miss.length && v!==lastPopDate){ lastPopDate=v; showHolModal(miss); }
 });
-document.getElementById('holOk').addEventListener('click', function(){ document.getElementById('holModal').hidden=true; });
-document.getElementById('holModal').addEventListener('click', function(e){ if(e.target===this) this.hidden=true; });
+document.getElementById('holOk').addEventListener('click', hideHolModal);
+document.getElementById('holModal').addEventListener('click', function(e){ if(e.target===this) hideHolModal(); });
+try{
+  if(typeof window !== 'undefined' && window.addEventListener){
+    window.addEventListener('popstate', function(){
+      var m = document.getElementById('holModal');
+      if(m && !m.hidden) m.hidden = true; // Android 系統返回手勢優先關閉彈窗
+    });
+  }
+}catch(e){}
 
 var nowEl = document.getElementById('now');
+var autoDate = keyOf(new Date()); /* 系統自動設的日期：用戶冇手動改過先會喺午夜翻轉時自動更新 */
 function checkRollover(){ /* v2.13：午夜翻轉，用戶冇手動改過日期先自動跟今日，唔會靜默留舊日期計錯數 */
   var r = document.getElementById('recv');
   var today = keyOf(new Date());
@@ -385,8 +410,6 @@ function tick(){
 }
 tick();
 document.addEventListener('visibilitychange', function(){ if(!document.hidden) checkRollover(); });
-
-var autoDate = keyOf(new Date()); /* 系統自動設的日期：用戶冇手動改過先會喺午夜翻轉時自動更新 */
 (function init(){
   document.getElementById('recv').value = autoDate;
   render();

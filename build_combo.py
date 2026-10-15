@@ -108,7 +108,7 @@ tabs_js = '''
     t.setAttribute('aria-selected',tb?'true':'false');
     c.setAttribute('aria-selected',tb?'false':'true');
   }
-  function show(which,dir){
+  function show(which,dir,fromPop){
     if(which===cur) return;
     cur=which;
     var tb=which==='t', el=tb?pt:pc;
@@ -119,6 +119,13 @@ tabs_js = '''
     el.classList.remove('slideL','slideR','slideU','slideD');
     void el.offsetWidth;
     el.classList.add(dir==='L'?'slideL':dir==='R'?'slideR':dir==='U'?'slideU':'slideD');
+    if(!fromPop){
+      try{
+        if(typeof window !== 'undefined' && window.history && window.history.pushState){
+          window.history.pushState({ tab: which }, '');
+        }
+      }catch(e){}
+    }
   }
   t.addEventListener('click',function(){show('t','R');});
   c.addEventListener('click',function(){show('c','L');});
@@ -137,7 +144,29 @@ tabs_js = '''
     }
     if(store.get('tc_barhide')==='1'){tabs.classList.add('hide');tg.textContent='顯示';}
     syncAria();
+    try{
+      if(typeof window !== 'undefined' && window.addEventListener){
+        window.addEventListener('popstate', function(e){
+          if(e && e.state && (e.state.tab === 't' || e.state.tab === 'c')){
+            show(e.state.tab, e.state.tab === 't' ? 'R' : 'L', true);
+          }
+        });
+        if(window.history && window.history.replaceState && !window.history.state){
+          window.history.replaceState({ tab: cur }, '');
+        }
+      }
+    }catch(e){}
   })();
+  try{
+    if(typeof window !== 'undefined' && window.visualViewport){
+      window.visualViewport.addEventListener('resize', function(){
+        var isKb = window.visualViewport.height < window.innerHeight * 0.75;
+        if(tabs && !tabs.classList.contains('hide')){
+          tabs.style.display = isKb ? 'none' : '';
+        }
+      });
+    }
+  }catch(e){}
   var sx=null,sy=null;
   document.addEventListener('touchstart',function(e){
     if(e.target.closest && e.target.closest('textarea,input,.tabs')) return;
