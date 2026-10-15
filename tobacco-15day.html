@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>15天計算</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;background:#faf6ee;color:#2e2a24;max-width:720px;margin:0 auto;padding:12px 12px 32px}
+h1{font-size:15px;letter-spacing:6px;text-indent:6px;font-weight:700;text-align:center;color:#2e2a24;margin:14px 0 0/*v2.04：去雙線*/}
+.now{text-align:center;font-size:12.5px;color:#8a8177;font-variant-numeric:tabular-nums;margin:8px 0 14px}
+.kicker{font-size:11px;letter-spacing:4px;text-indent:4px;color:#8a8177;font-weight:700;margin-bottom:8px}
+.sec{margin-bottom:24px}
+.inwrap{margin:0 0 6px;padding:2px 2px 14px}
+.inwrap label{display:block;font-size:11px;letter-spacing:4px;text-indent:4px;color:#8a8177;font-weight:700;margin-bottom:6px}
+#recv{width:100%;font-size:18px;padding:10px 12px;border:1px solid #b8d9e6;border-radius:8px;background:#eef7fb;color:#2e2a24;font-variant-numeric:tabular-nums;box-sizing:border-box;outline:none;}
+#pg-tobacco #recv:focus{border-color:#1e9ab8;box-shadow:0 0 0 2px rgba(30,154,184,.15);}
+.hero{background:#fdf3dc;border:1px solid #e7ddcc;border-radius:8px;padding:24px 16px 22px;margin:4px 0 26px;text-align:center}
+.hero .hk{font-size:11px;letter-spacing:5px;text-indent:5px;color:#8a8177;font-weight:700;margin-bottom:10px}
+.hero .hv{font-size:32px;font-weight:800;color:#2e2a24;margin:0 0 8px;line-height:1.25;font-variant-numeric:tabular-nums}
+.hero .hs{font-size:12.5px;color:#b0523f;font-weight:700}
+.steps{list-style:none;font-size:12.5px}
+.steps li{display:flex;align-items:baseline;gap:6px;padding:9px 2px;border-bottom:1px solid #e7ddcc}
+.steps li .arr{margin-left:auto;white-space:nowrap;color:#c07f2e;font-weight:700}
+.steps li .sd{font-variant-numeric:tabular-nums;white-space:nowrap}
+.warn{margin:10px 0;font-size:14px;font-weight:700;color:#a61e1e;background:#ffe3e3;border:2px solid #a61e1e;border-radius:8px;padding:12px}
+#holModal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px}
+#holModal[hidden]{display:none}
+.holmBox{background:#fffdf8;border-radius:10px;max-width:320px;width:100%;padding:22px 18px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.holmBox h3{font-size:16px;color:#a61e1e;margin-bottom:10px}
+.holmBox p{font-size:14px;color:#3d3830;line-height:1.8;margin-bottom:18px}
+.holmBox button{width:100%;padding:12px;border:none;border-radius:8px;background:#2e2a24;color:#fff;font-size:16px;font-weight:700;touch-action:manipulation}
+.cal h3,.msec h3{font-size:14px;letter-spacing:3px;text-indent:3px;margin-bottom:8px;text-align:center;color:#2e2a24}
+.msec{margin-bottom:16px}
+.msec:last-child{margin-bottom:0}
+.cal{margin-bottom:4px}
+.week,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.week div{text-align:center;font-size:11px;color:#7a7166;padding:2px 0}
+.cell{background:#fffdf8;border:1px solid #e7ddcc;border-radius:6px;height:80px;padding:4px 2px;overflow:hidden;text-align:center}
+.cell.empty{background:transparent;border-color:transparent;box-shadow:none}
+.cell .dnum{font-size:16px;font-weight:700;line-height:1.3}
+.cell.wknd{background:#f1ece1}.cell.wknd .dnum{color:#7a7166}
+.cell .ctag{font-size:12.5px;font-weight:800;color:#2e2a24;line-height:1.4;white-space:nowrap}
+.cell .pill{display:inline-block;font-size:12.5px;font-weight:700;border-radius:10px;padding:2px 6px;margin-top:2px;line-height:1.5;color:#fff;max-width:100%;box-sizing:border-box}
+.cell.t0{border:2px solid #1e9ab8}.cell.t0 .pill{background:#1e9ab8}
+.cell.def{border:2px dashed #c07f2e}.cell.def .pill{background:#c07f2e}
+.cell.fin{border:2px solid #b0523f;background:#fae9dc}.cell.fin .pill{background:#b0523f}
+.cell.cnt{background:#f6eeda;border-color:#e2d3a8/*v2.01：第1-14天淺藍高亮，同發出日同色系*/}
+.cell .htype{font-size:11px;font-weight:700;color:#a63d5d;line-height:1.4;margin-top:2px;overflow:hidden;text-overflow:ellipsis}
+.cell.today .dnum{color:#b0523f;text-decoration:underline}
+.legend{display:flex;flex-wrap:wrap;gap:8px 12px;font-size:11px;color:#7a7166;margin-top:10px;padding-top:10px;border-top:1px solid #e7ddcc}
+.legend span{display:inline-flex;align-items:center;gap:4px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.hollist{list-style:none;margin-top:2px}
+.hollist li{display:flex;align-items:baseline;gap:8px;font-size:13px;padding:8px 2px;border-bottom:1px solid #e7ddcc}
+.hollist .hd{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.hollist .tp{flex:none;font-size:11px;font-weight:700;color:#a63d5d;background:#f7e3e9;border-radius:10px;padding:1px 8px;white-space:nowrap}
+.hollist .nm{color:#6e675c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hollist .none{color:#8a8177;font-size:12.5px;padding:7px 2px}
+details.foot{font-size:11px;color:#8a8177;background:#fffdf8;border:1px solid #e7ddcc;border-radius:8px;padding:10px 12px}
+details.foot summary{cursor:pointer;font-weight:700;color:#7a7166;font-size:12.5px}
+details.foot div{margin-top:8px;line-height:1.8}
+details.foot a{color:#1e9ab8}
+.offpill{display:inline-block;font-size:11px;font-weight:700;color:#1e9ab8;background:#e8f4f8;border:1px solid #a8d4e2;border-radius:20px;padding:2px 10px}
+.privfoot{text-align:center;font-size:11px;color:#8a8177;padding:14px 12px 4px;line-height:1.6}
+@media(min-width:560px){.week,.days{gap:3px}.cell{height:88px;padding:5px 4px}.cell .dnum{font-size:18px}.cell .ctag{font-size:14px}.cell .pill{font-size:14px}.cell .htype{font-size:11px}}
+@media(min-width:760px){.cell{height:92px}.cell .dnum{font-size:20px}.cell .ctag{font-size:16px}.cell .pill{font-size:16px}.cell .htype{font-size:11px}.hero .hv{font-size:32px}}
+</style>
+</head>
+<body>
+<h1>15天計算</h1>
+<div style="text-align:center"><span class="offpill" hidden>📴 離線模式</span></div>
+<div class="now" id="now"></div>
+
+<div class="inwrap">
+<label for="recv">發出日期</label>
+<input type="date" id="recv">
+</div>
+
+<div class="hero">
+<div class="hk">15天期限</div>
+<div class="hv" id="kFinal">–</div>
+<div class="hs" id="kSub" hidden></div>
+</div>
+
+<div id="warnBox"></div>
+<div id="holModal" hidden>
+<div class="holmBox">
+<h3>⚠️ 假期資料不足</h3>
+<p id="holModalBody"></p>
+<button id="holOk">知道了</button>
+</div>
+</div>
+
+<div class="sec" id="stepsCard">
+<div class="kicker">順延明細</div>
+<ul class="steps" id="steps"></ul>
+</div>
+
+<div class="sec">
+<div class="kicker">日曆</div>
+<div class="cal" id="cal0"></div>
+<div class="legend">
+<span><i class="dot" style="background:#1e9ab8"></i>發出日</span>
+<span><i class="dot" style="background:#cfa93f"></i>第1–14天</span>
+<span><i class="dot" style="background:#b0523f"></i>第15天期限</span>
+<span><i class="dot" style="background:#c07f2e"></i>順延</span>
+<span><i class="dot" style="background:#a63d5d"></i>假期類型（紅字）</span>
+</div>
+</div>
+<div class="sec">
+<div class="kicker">本期涉及假期</div>
+<ul class="hollist" id="holList"></ul>
+</div>
+
+<details class="foot">
+<summary>計算規則</summary>
+<div>
+發出當天不計入，由翌日起算，第 15 天為基礎截止日；截止日如為星期六、日或澳門公眾假期／補假日／豁免上班日，順延一天並重新檢查，直至首個正常工作天。<br>僅供參考，實際日期以官方公佈為準。<br>假期來源：政府 iCal，載入失敗用內建表。
+</div>
+</details>
+<div class="privfoot">🔒 本地運算，不會作任何記錄，離線可用。</div>
+
+<script>
+/*PURE-START*/
+var HOLIDAYS_FALLBACK = {"2026-01-01":"元旦","2026-02-16":"農曆除夕（下午豁免）","2026-02-17":"農曆正月初一","2026-02-18":"農曆正月初二","2026-02-19":"農曆正月初三","2026-04-03":"耶穌受難日","2026-04-04":"復活節前日","2026-04-05":"清明節","2026-04-06":"復活節前日的補假","2026-04-07":"清明節的補假","2026-05-01":"勞動節","2026-05-24":"佛誕節","2026-05-25":"佛誕節的補假","2026-06-19":"端午節","2026-09-26":"中秋節翌日","2026-09-28":"中秋節翌日的補假","2026-10-01":"中華人民共和國國慶日","2026-10-02":"中華人民共和國國慶日翌日","2026-10-18":"重陽節","2026-10-19":"重陽節的補假","2026-11-02":"追思節","2026-12-08":"聖母無原罪瞻禮","2026-12-20":"澳門特別行政區成立紀念日","2026-12-21":"澳門特別行政區成立紀念日的補假","2026-12-22":"冬至","2026-12-24":"聖誕節前日","2026-12-25":"聖誕節","2026-12-31":"除夕（下午豁免）","2027-01-01":"元旦","2027-02-05":"農曆除夕（下午豁免）","2027-02-06":"農曆正月初一","2027-02-07":"農曆正月初二","2027-02-08":"農曆正月初三","2027-02-09":"農曆正月初一的補假","2027-02-10":"農曆正月初二的補假","2027-03-26":"耶穌受難日","2027-03-27":"復活節前日","2027-03-29":"復活節前日的補假","2027-04-05":"清明節","2027-05-01":"勞動節","2027-05-03":"勞動節的補假","2027-05-13":"佛誕節","2027-06-09":"端午節","2027-09-16":"中秋節翌日","2027-10-01":"中華人民共和國國慶日","2027-10-02":"中華人民共和國國慶日翌日","2027-10-04":"中華人民共和國國慶日翌日的補假","2027-10-08":"重陽節","2027-11-02":"追思節","2027-12-08":"聖母無原罪瞻禮","2027-12-20":"澳門特別行政區成立紀念日","2027-12-22":"冬至","2027-12-24":"聖誕節前日","2027-12-25":"聖誕節","2027-12-27":"聖誕節的補假","2027-12-31":"除夕（下午豁免）"};
+var ICAL_URL = 'https://www.gov.mo/zh-hant/public-holidays/ical/';
+var WD = ['日','一','二','三','四','五','六'];
+
+function pad(n){return (n<10?'0':'')+n;}
+function keyOf(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function addD(d,n){var r=new Date(d.getFullYear(),d.getMonth(),d.getDate());r.setDate(r.getDate()+n);return r;}
+function diffD(a,b){return Math.round((new Date(a.getFullYear(),a.getMonth(),a.getDate())-new Date(b.getFullYear(),b.getMonth(),b.getDate()))/86400000);}
+function fmt(d){return d.getFullYear()+'年'+pad(d.getMonth()+1)+'月'+pad(d.getDate())+'日';}
+function fmtS(d){return pad(d.getMonth()+1)+'月'+pad(d.getDate())+'日（星期'+WD[d.getDay()]+'）';}
+function parseDateInput(s){
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+  if(!m) return new Date(NaN);
+  var d = new Date(+m[1], +m[2]-1, +m[3]);
+  // round-trip 校驗：唔畀 2026-02-30 之類自動滾到下個月（render 遇到 NaN 會跳過唔重算）
+  if(d.getFullYear()!==+m[1] || d.getMonth()!==+m[2]-1 || d.getDate()!==+m[3]) return new Date(NaN);
+  return d;
+}
+
+// 解析 gov.mo iCal：DTSTART 全日型取日期；UTC 時間型轉為澳門日期(+8)
+function parseICS(text, map){
+  var t = String(text).replace(/\r\n[ \t]/g,'').replace(/\n[ \t]/g,'');
+  var blocks = t.split('BEGIN:VEVENT'), n = 0;
+  for(var i=0;i<blocks.length;i++){
+    var b = blocks[i];
+    var mD = b.match(/DTSTART(?:;[^:]*)?:([0-9TZ]+)/);
+    var mS = b.match(/SUMMARY:([^\r\n]+)/);
+    if(!mD || !mS) continue;
+    var ds = mD[1].trim(), key;
+    if(ds.indexOf('T') >= 0){
+      var m = ds.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);
+      if(!m) continue;
+      var ms = Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6]) + 8*3600*1000; // 轉澳門時間
+      var md = new Date(ms);
+      key = md.getUTCFullYear()+'-'+pad(md.getUTCMonth()+1)+'-'+pad(md.getUTCDate());
+    }else{
+      key = ds.replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3');
+    }
+    var sm = mS[1].trim();
+    var mt = sm.match(/^(.*?)\s*\((強制性公眾假期|公眾假期|補假日|豁免上班)\)\s*$/);
+    var name = mt ? mt[1] : sm, typ = mt ? mt[2] : '';
+    if(typ === '豁免上班') name += '（下午豁免）';
+    map[key] = name; n++;
+  }
+  return n;
+}
+
+// 回傳 null 表示正常工作天，否則回傳順延原因
+function blockReason(d, hol){
+  var k = keyOf(d), h = hol[k];
+  if(h) return h;
+  var w = d.getDay();
+  if(w === 6) return '星期六';
+  if(w === 0) return '星期日';
+  return null;
+}
+
+function calc(received, hol){
+  var t0 = received, t1 = addD(t0,1), base = addD(t0,15);
+  var d = base, steps = [], guard = 0;
+  while(guard++ < 370){
+    var r = blockReason(d, hol);
+    if(!r) break;
+    steps.push({date:new Date(d.getTime()), reason:r});
+    d = addD(d,1);
+  }
+  return {t0:t0, t1:t1, base:base, steps:steps, final:d};
+}
+
+// 假期類型：名稱含「補假」→補假日；含「豁免」→豁免上班；否則→公眾假期
+function holType(name){
+  if(name.indexOf('補假') >= 0) return '補假日';
+  if(name.indexOf('豁免') >= 0) return '豁免上班';
+  return '公眾假期';
+}
+// v1.76：格仔專用短版（2字，手機唔換行）；假期清單照用 holType 全名
+function holTypeShort(name){
+  if(name.indexOf('補假') >= 0) return '補假';
+  if(name.indexOf('豁免') >= 0) return '豁免';
+  return '假期';
+}
+
+/*PURE-END*/
+
+var HOL = {};
+for(var k in HOLIDAYS_FALLBACK) HOL[k] = HOLIDAYS_FALLBACK[k];
+var holSource = '內建';
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function fmtMD(d){return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'（'+WD[d.getDay()]+'）';}
+
+function render(){
+  var v = document.getElementById('recv').value.trim();
+  if(!v) return;
+  var d0 = parseDateInput(v);
+  if(isNaN(d0.getTime())) return; // 未輸完／格式唔啱就唔重算
+  var r = calc(d0, HOL);
+
+  // v1.93：日期＋星期同一行（唔再分兩行）
+  document.getElementById('kFinal').textContent = fmt(r.final)+'（'+WD[r.final.getDay()]+'）';
+  var today = new Date(); today = new Date(today.getFullYear(),today.getMonth(),today.getDate());
+
+  // v1.95：hero 副行——「原15天 X，順延 N 天」（用戶拍板，同「第15天期限」呼應）
+  var kSub = document.getElementById('kSub');
+  if(r.steps.length){
+    kSub.textContent = '原15天 '+fmtMD(r.base)+'，順延 '+r.steps.length+' 天';
+    kSub.hidden = false;
+  }else kSub.hidden = true;
+
+  // 順延明細——有先顯示成張卡，無就收起（減法，唔留「無需順延」）
+  var st = document.getElementById('steps');
+  var sc = document.getElementById('stepsCard');
+  if(r.steps.length){
+    sc.hidden = false;
+    var html = '';
+    for(var i=0;i<r.steps.length;i++){
+      var s = r.steps[i];
+      html += '<li><span class="sd">'+fmtMD(s.date)+'</span> · '+esc(s.reason)+' <span class="arr">→ 順延一天</span></li>';
+    }
+    st.innerHTML = html;
+  }else{
+    st.innerHTML = '';
+    sc.hidden = true;
+  }
+
+  var wb = document.getElementById('warnBox'); wb.innerHTML = '';
+  var miss = coverageMiss(v);
+  if(miss.length) wb.innerHTML = '<div class="warn">⚠️ '+missText(miss)+'</div>';
+
+  // v1.89：月份分開＋只畫有用嘅週——由發出嗰個星期日，到期限嗰個星期六
+  var s0 = new Date(r.t0); s0.setDate(s0.getDate()-s0.getDay());
+  var e1 = new Date(r.final); e1.setDate(e1.getDate()+(6-r.final.getDay()));
+  // v1.91：期限喺週四／五 → 多顯示一週（嗰週期限後淨返一兩日，唔夠睇）
+  if(r.final.getDay()===4 || r.final.getDay()===5) e1.setDate(e1.getDate()+7);
+  renderRange(document.getElementById('cal0'), r, s0, e1, today);
+  // v1.94：假期表跟返實際顯示範圍（發出月 1 號之前嗰幾日日曆都唔畫，假期表唔好列出嚟）
+  var mStart = new Date(r.t0.getFullYear(), r.t0.getMonth(), 1);
+  renderHolListRange(s0 < mStart ? mStart : s0, e1);
+}
+
+// v1.87：假期表改列週條範圍內嘅假期（唔再列成個月）
+function renderHolListRange(s0, e1){
+  var items = [], seen = {}, d = new Date(s0);
+  while(d <= e1){
+    var k = keyOf(d);
+    if(HOL[k] && !seen[k]){ seen[k] = 1; items.push({d:new Date(d), name:HOL[k]}); }
+    d.setDate(d.getDate()+1);
+  }
+  var box = document.getElementById('holList');
+  if(!items.length){ box.innerHTML = '<div class="none">本期日曆範圍內沒有假期。</div>'; return; }
+  var html = '';
+  for(var j=0;j<items.length;j++){
+    var it = items[j];
+    html += '<li><span class="hd">'+pad(it.d.getDate())+'/'+pad(it.d.getMonth()+1)+'（'+WD[it.d.getDay()]+'）</span>'
+      + '<span class="tp">'+holType(it.name)+'</span>'
+      + '<span class="nm">'+esc(it.name)+'</span></li>';
+  }
+  box.innerHTML = html;
+}
+
+// v1.87：週條月曆（取代整月 renderCal）——轉月嗰格日期顯示 M/D，其餘淨數字
+// v1.89：月份分開、每月只畫有用嘅週
+// 範圍：發出日嗰個星期日（s0）→ 期限嗰個星期六（e1）；逐個月分 section，
+// 每月只畫同 [s0,e1] 相交嘅星期行，之前／之後嘅行唔畫（無用嘅行唔顯示）
+function renderRange(box, r, s0, e1, today){
+  var stepMap = {}, i;
+  for(i=0;i<r.steps.length;i++) stepMap[keyOf(r.steps[i].date)] = r.steps[i].reason;
+  var finalK = keyOf(r.final);
+  var wdn = ['日','一','二','三','四','五','六'];
+  function dayCell(dt){
+    var k = keyOf(dt), n = diffD(dt, r.t0);
+    var w = dt.getDay(), h = HOL[k] || '';
+    var cls = 'cell', reason = stepMap[k] || '';
+    if(w===0||w===6) cls += ' wknd';
+    if(diffD(dt,today)===0) cls += ' today';
+    var inner = '<div class="dnum">'+dt.getDate()+'</div>';
+    if(n === 0){ cls += ' t0'; inner += '<div><span class="pill">發出</span></div>'; }
+    else if(k === finalK){ cls += ' fin'; inner += '<div><span class="pill">期限</span></div>'; }
+    else if(reason){ cls += ' def'; inner += '<div><span class="pill">'+(n===15?'15天':'順延')+'</span></div>'; }
+    else if(n >= 1 && n <= 14){ cls += ' cnt'; inner += '<div class="ctag">第'+n+'天</div>'; }
+    if(h) inner += '<div class="htype">'+holTypeShort(h)+'</div>';
+    return '<div class="'+cls+'">'+inner+'</div>';
+  }
+  var html = '';
+  // v1.90：月份由發出月開始（唔係發出星期日嗰個月）——上個月漏出嚟嘅一兩日唔顯示
+  var mStart = new Date(r.t0.getFullYear(), r.t0.getMonth(), 1);
+  var mEnd = new Date(e1.getFullYear(), e1.getMonth(), 1);
+  for(var m = new Date(mStart.getTime()); m <= mEnd; m.setMonth(m.getMonth()+1)){
+    var y = m.getFullYear(), mo = m.getMonth();
+    html += '<div class="msec"><h3>'+y+'年'+(mo+1)+'月</h3><div class="week">';
+    for(i=0;i<7;i++) html += '<div>'+wdn[i]+'</div>';
+    html += '</div><div class="days">';
+    var w0 = new Date(y, mo, 1); w0.setDate(w0.getDate()-w0.getDay());
+    var w1 = new Date(y, mo+1, 0); w1.setDate(w1.getDate()+(6-w1.getDay()));
+    for(var w = new Date(w0.getTime()); w <= w1; w.setDate(w.getDate()+7)){
+      var wE = new Date(w.getTime()); wE.setDate(wE.getDate()+6);
+      if(wE < s0 || w > e1) continue; // 同顯示範圍無相交嘅行，唔畫
+      for(var j=0;j<7;j++){
+        var dt = new Date(w.getTime()); dt.setDate(dt.getDate()+j);
+        if(dt.getMonth()!==mo || dt < s0 || dt > e1) html += '<div class="cell empty"></div>';
+        else html += dayCell(dt);
+      }
+    }
+    html += '</div></div>';
+  }
+  box.innerHTML = html;
+}
+
+document.getElementById('recv').addEventListener('input', render);
+// v1.79：離線狀態 pill（只讀 navigator.onLine，唔發任何請求；兩頁共用 class，兩頁 pill 齊更新）
+function updNet(){
+  try{
+    var show = !navigator.onLine;
+    if(document.querySelectorAll){
+      var ps = document.querySelectorAll('.offpill');
+      for(var i=0;i<ps.length;i++) ps[i].hidden = !show;
+    }
+  }catch(e){}
+}
+try{ if(window.addEventListener){ window.addEventListener('online',updNet); window.addEventListener('offline',updNet); } }catch(e){}
+updNet();
+function holMaxYear(){ var ys=Object.keys(HOL).map(function(k){ return +k.slice(0,4); }); return ys.length?Math.max.apply(null,ys):null; }
+function coverageMiss(v){
+  if(!v) return [];
+  var vd = (v instanceof Date) ? v : parseDateInput(v);
+  if(isNaN(vd.getTime())) return [];
+  var r; try{ r=calc(vd, HOL); }catch(e){ return []; }
+  var needY={}, d=new Date(r.t0.getTime());
+  while(diffD(d, r.final)<=0){ needY[d.getFullYear()]=1; d=addD(d,1); }
+  return Object.keys(needY).filter(function(y){ return !Object.keys(HOL).some(function(k){ return k.indexOf(y+'-')===0; }); });
+}
+function missText(miss){ return miss.join('、')+' 年假期政府尚未發佈（假期資料只到 '+holMaxYear()+' 年），此範圍結果僅供參考。'; }
+var lastPopDate='';
+function showHolModal(miss){
+  document.getElementById('holModalBody').innerHTML='<b>'+miss.join('、')+'</b> 年的公眾假期政府尚未發佈（假期資料目前只到 '+holMaxYear()+' 年）。<br><br>這個15天期限僅根據已知假期計算，僅供參考；實際期限可能因日後公佈的假期再順延。';
+  document.getElementById('holModal').hidden=false;
+}
+document.getElementById('recv').addEventListener('change', function(){
+  var v=this.value, miss=coverageMiss(v);
+  if(miss.length && v!==lastPopDate){ lastPopDate=v; showHolModal(miss); }
+});
+document.getElementById('holOk').addEventListener('click', function(){ document.getElementById('holModal').hidden=true; });
+document.getElementById('holModal').addEventListener('click', function(e){ if(e.target===this) this.hidden=true; });
+
+var nowEl = document.getElementById('now');
+function checkRollover(){ /* v2.13：午夜翻轉，用戶冇手動改過日期先自動跟今日，唔會靜默留舊日期計錯數 */
+  var r = document.getElementById('recv');
+  var today = keyOf(new Date());
+  if(r && r.value === autoDate && today !== autoDate){
+    r.value = today; autoDate = today; render();
+  }
+}
+function tick(){
+  var n = new Date();
+  nowEl.textContent =
+    '現在 '+pad(n.getDate())+'/'+pad(n.getMonth()+1)+'/'+n.getFullYear()+'（'+WD[n.getDay()]+'） '+
+    pad(n.getHours())+':'+pad(n.getMinutes());
+  checkRollover();
+  setTimeout(tick, 60000 - (Date.now() % 60000)); // 對齊整分鐘，每分鐘更新一次，唔使每秒跳
+}
+tick();
+document.addEventListener('visibilitychange', function(){ if(!document.hidden) checkRollover(); });
+
+var autoDate = keyOf(new Date()); /* 系統自動設的日期：用戶冇手動改過先會喺午夜翻轉時自動更新 */
+(function init(){
+  document.getElementById('recv').value = autoDate;
+  render();
+  try{
+    var ctl = new AbortController();
+    var to = setTimeout(function(){ try{ctl.abort();}catch(e){} }, 8000);
+    fetch(ICAL_URL, {signal: ctl.signal, credentials:'omit', referrerPolicy:'no-referrer'}).then(function(res){
+      clearTimeout(to);
+      if(!res.ok) throw 0;
+      return res.text();
+    }).then(function(txt){
+      var m = {};
+      if(parseICS(txt, m) >= 20){ HOL = m; holSource = '即時'; render(); }
+    }).catch(function(){});
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
